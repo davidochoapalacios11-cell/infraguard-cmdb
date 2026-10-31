@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>InfraGuard CMDB — Continuidad operativa en salud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090d;--bg2:#0e1218;--line:#232a35;--tx:#e9edf3;--mut:#8b95a5;--ac:#ff6a3d;--ac2:#4fd1c5;--bad:#ff4d5e;--warn:#f5b73b;--ok:#3ecf8e;--dots:255,255,255;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+[data-theme="light"]{--bg:#f6f4f1;--bg2:#ffffff;--line:#ddd8d1;--tx:#15181d;--mut:#5d6672;--dots:20,24,30;color-scheme:light}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;justify-content:space-between;align-items:center;padding:12px 4vw;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{font:700 15px "JetBrains Mono",monospace;letter-spacing:.5px}.logo b{color:var(--ac)}
+.pill{display:flex;gap:3px;border:1px solid var(--line);border-radius:10px;padding:3px;background:var(--bg2)}
+.pill a{color:var(--tx);text-decoration:none;padding:5px 12px;border-radius:7px;font-size:12.5px}.pill a:hover{background:var(--line)}
+.btn{background:var(--ac);color:#150700;border:0;border-radius:8px;padding:8px 15px;font:600 12.5px Inter,sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:filter .15s}
+.btn.g{background:transparent;color:var(--tx);border:1px solid var(--line)}.btn:hover{filter:brightness(1.15)}
+.btn.sm{padding:4px 10px;font-size:11.5px}
+.btn.danger{background:var(--bad);color:#fff}
+:focus-visible{outline:2px solid var(--ac2);outline-offset:2px}
+.hero{position:relative;min-height:55vh;display:flex;align-items:center;padding:50px 5vw;overflow:hidden;border-bottom:1px solid var(--line)}
+#cv{position:absolute;inset:0;width:100%;height:100%}
+.hero>div{position:relative;max-width:780px}
+h1{font-size:clamp(30px,5vw,62px);line-height:1.05;margin:0 0 18px;font-weight:700;letter-spacing:-1px}
+.hero p{max-width:580px;color:var(--mut);font:13px/1.6 "JetBrains Mono",monospace;margin:0 0 22px}
+.hero .row{display:flex;gap:10px;flex-wrap:wrap}
+section{padding:50px 4vw}
+h2{font-size:clamp(20px,2.5vw,30px);margin:0 0 6px}.sub{color:var(--mut);max-width:700px;margin:0 0 22px;font-size:13.5px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{cursor:pointer;transition:transform .15s, border-color .15s}.kpi:hover{transform:translateY(-2px);border-color:var(--ac)}
+.kpi b{display:block;font:700 22px "JetBrains Mono",monospace}.kpi span{color:var(--mut);font-size:12px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media(max-width:960px){.layout{grid-template-columns:1fr}.pill{display:none}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--tx);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ac);border-color:var(--ac);color:#150700;font-weight:600}
+.gwrap{overflow:hidden;position:relative;user-select:none;touch-action:none;background:var(--bg);border-radius:10px;min-height:500px}
+.gwrap svg{width:100%;height:520px;display:block;cursor:grab}
+.gwrap svg:active{cursor:grabbing}
+.map-controls{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px;z-index:5}
+.map-controls button{width:30px;height:30px;background:var(--bg2);border:1px solid var(--line);color:var(--tx);border-radius:6px;cursor:pointer;font-weight:bold}
+.lane{fill:var(--mut);font:11px "JetBrains Mono",monospace}
+.e{fill:none;stroke:var(--line);stroke-width:1.4;transition:stroke .2s,stroke-width .2s}.e.act{stroke:var(--ac);stroke-width:2.4}.e.dep{stroke:var(--ac2);stroke-width:2.2}.e.hl{stroke:var(--warn);stroke-width:3}
+.n{cursor:pointer;transition:opacity .25s}.n rect{fill:var(--bg2);stroke:var(--line);stroke-width:1.4;transition:all .2s}
+.n text{fill:var(--tx);font:11px Inter,sans-serif;text-anchor:middle;pointer-events:none}
+.n.sel rect{stroke:var(--tx);stroke-width:2.5;fill:var(--ac)}.n.sel text{fill:#150700;font-weight:600}
+.n.imp rect{stroke:var(--ac);fill:color-mix(in srgb,var(--ac) 22%,var(--bg2))}
+.n.dep rect{stroke:var(--ac2);fill:color-mix(in srgb,var(--ac2) 18%,var(--bg2))}
+.n.hl rect{stroke:var(--warn);stroke-width:2.5}
+.n.spof rect{stroke:var(--bad);stroke-width:2;stroke-dasharray:3 2}
+.n.dim,.n.off{opacity:.22}.n.mt rect{stroke-dasharray:4 3;stroke:var(--warn)}.n:hover rect{stroke:var(--ac2)}
+.dl dt{color:var(--mut);font-size:11.5px;margin-top:10px}.dl dd{margin:2px 0 0;font-size:13px}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11.5px;border:1px solid var(--line);font-weight:500}
+.tag.ok{color:var(--ok);border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.tag.warn{color:var(--warn);border-color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent)}
+.tag.bad{color:var(--bad);border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px}
+select,input[type=text],input[type=number],input[type=date],input[type=search]{background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px 11px;font:13.5px Inter,sans-serif}
+select{min-width:180px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--tx);padding:8px 12px;cursor:pointer;font:12.5px Inter,sans-serif}
+.seg button[aria-pressed="true"]{background:var(--line);font-weight:600}
+.res{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.res li{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+.banner{border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px;border:1px solid var(--line)}
+.banner.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
+.banner.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.banner.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.tw{overflow-x:auto}.tw table{width:100%;border-collapse:collapse;min-width:980px;font-size:13px}
+th{text-align:left;color:var(--mut);font-weight:500;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}
+.form select,.form input{width:100%}.stage{padding:4px 6px;font-size:12px;border-radius:6px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:13px;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;font-weight:500}.toast.on{opacity:1}
+.logrow{display:flex;gap:8px;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line)}.logrow time{color:var(--mut);font:11px "JetBrains Mono",monospace;white-space:nowrap}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:14px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px}
+.al{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;padding:7px 0;border-bottom:1px solid var(--line)}
+footer{padding:26px 4vw;border-top:1px solid var(--line);color:var(--mut);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:90;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-bg.on{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:20px}
+.modal h3{margin:0 0 14px;font-size:18px}
+.chart-box{height:180px;width:100%;position:relative;margin-top:10px}
+.chart-box canvas{width:100%!important;height:100%!important}
+@media print{
+  nav,.pill,.btn,.chips,.ctrl,.hero,#alta,.map-controls,footer,.modal-bg{display:none!important}
+  body{background:#fff;color:#000}
+  .card{border:1px solid #ccc;background:#fff;color:#000;page-break-inside:avoid}
+  section{padding:10px 0}
+  .tag{border:1px solid #000;color:#000!important}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">INFRA<b>GUARD</b>.CMDB <span id="roleBadge" class="tag warn" style="margin-left:8px;font-size:10px">Admin TI</span></div>
+  <div class="pill">
+    <a href="#mapa">Topología</a>
+    <a href="#dash">Tablero</a>
+    <a href="#simulador">Simulador</a>
+    <a href="#spof">SPOF & Riesgo</a>
+    <a href="#rfc">Cambios (RFC)</a>
+    <a href="#incidents">Incidentes</a>
+    <a href="#ciclo">Inventario</a>
+    <a href="#salud">Normativa</a>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <select id="userRole" style="padding:4px 8px;font-size:12px" aria-label="Rol de usuario">
+      <option value="admin">Rol: Administrador TI</option>
+      <option value="lead">Rol: Jefe de Infraestructura</option>
+      <option value="auditor">Rol: Auditor / Salud</option>
+    </select>
+    <button class="btn g sm" id="themeToggle" title="Cambiar tema">☀️/🌙</button>
+    <button class="btn sm" onclick="window.print()">🖨️ Reporte</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <canvas id="cv" aria-hidden="true"></canvas>
+  <div>
+    <h1>CONTINUIDAD OPERATIVA EN SALUD Y GESTIÓN DE RIESGO</h1>
+    <p>Plataforma CMDB para el Hospital Regional Santa Aurora. Mapeo de dependencias de TI, evaluación automática de puntos únicos de falla (SPOF) y cumplimiento normativo (Ley 29733 & HCE).</p>
+    <div class="row">
+      <a class="btn" href="#mapa">Explorar Grafo Topológico</a>
+      <a class="btn g" href="#spof">Ver Puntos Únicos de Falla</a>
+      <button class="btn g" id="btnScan">🔍 Escaneo de Red Simulado</button>
+    </div>
+  </div>
+</header>
+
+<section id="dash">
+  <h2>Tablero de Control e Indicadores (KPIs)</h2>
+  <p class="sub">Haz clic en cualquier indicador KPI para filtrar interactivamente la lista de activos.</p>
+  <div class="kpis" id="kpiDash"></div>
+  <div class="grid3">
+    <div class="card">
+      <h3 style="margin:0;font-size:14px">Costo Anual por Capa (S/)</h3>
+      <div class="chart-box"><canvas id="chartCost"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0;font-size:14px">Vencimiento de Soporte por Trimestre</h3>
+      <div class="chart-box"><canvas id="chartExpiry"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0;font-size:14px">Distribución por Nivel de Riesgo</h3>
+      <div class="chart-box"><canvas id="chartRisk"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<section id="mapa">
+  <h2>Mapa Topológico de Activos</h2>
+  <p class="sub">Haz clic en un CI para ver dependencias. Pasa el cursor sobre un elemento para resaltar la ruta. Usa los botones para Zoom.</p>
+  <div class="chips" id="chips"></div>
+  <div class="layout">
+    <div class="card gwrap" id="gwrap1">
+      <div class="map-controls">
+        <button id="zIn" title="Zoom In">+</button>
+        <button id="zOut" title="Zoom Out">-</button>
+        <button id="zRst" title="Resetear Zoom">⟲</button>
+      </div>
+      <svg id="g1" viewBox="0 0 1250 520" role="img" aria-label="Grafo de dependencias entre activos"></svg>
+    </div>
+    <aside class="card" id="detail" aria-live="polite"></aside>
+  </div>
+</section>
+
+<section id="spof" style="background:var(--bg2);border-block:1px solid var(--line)">
+  <h2>1. Puntos Únicos de Falla (SPOF) y 2. Matriz de Riesgo</h2>
+  <p class="sub">Detección automática de elementos sin redundancia (Alta Disponibilidad / HA) cuyo fallo interrumpe procesos clínicos críticos.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin:0 0 10px;font-size:15px;color:var(--bad)">⚠️ Puntos Únicos de Falla Detectados</h3>
+      <div id="spofList"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px;font-size:15px">📊 Ranking de Riesgo Operativo (Risk Score 0-100)</h3>
+      <div id="riskList"></div>
+    </div>
+  </div>
+</section>
+
+<section id="simulador">
+  <h2>Simulador de Impacto de Cambios y Fallas</h2>
+  <p class="sub">Selecciona un activo para simular una caída o mantenimiento programado y evaluar el tiempo estimado de solución y los servicios afectados.</p>
+  <div class="ctrl">
+    <div><label for="selCI">Componente a simular</label><select id="selCI"></select></div>
+    <div><label id="lm">Escenario</label><div class="seg" role="group" aria-labelledby="lm"><button id="m1" aria-pressed="true">Falla inesperada</button><button id="m2" aria-pressed="false">Mantenimiento</button></div></div>
+    <button class="btn" id="run">Ejecutar simulación</button>
+  </div>
+  <div class="layout">
+    <div class="card gwrap"><svg id="g2" viewBox="0 0 1250 520" role="img" aria-label="Propagación del impacto"></svg></div>
+    <aside class="card" id="result" aria-live="polite"><p style="color:var(--mut);margin:0">Elige un componente y ejecuta la simulación.</p></aside>
+  </div>
+</section>
+
+<section id="rfc" style="background:var(--bg2);border-block:1px solid var(--line)">
+  <h2>3. Gestión de Solicitudes de Cambio (RFC)</h2>
+  <p class="sub">Control de cambios planificados en la infraestructura con evaluación previa de impacto operacional.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:15px">Registrar Nueva RFC</h3>
+      <div class="form" style="grid-template-columns:1fr">
+        <div><label for="rfcTitle">Título del cambio</label><input type="text" id="rfcTitle" placeholder="Ej. Actualización Firmware Switch Core"></div>
+        <div><label for="rfcCI">CI Principal afectado</label><select id="rfcCI"></select></div>
+        <div><label for="rfcDate">Fecha programada</label><input type="date" id="rfcDate"></div>
+        <div><label for="rfcDesc">Plan de mitigación / Rollback</label><input type="text" id="rfcDesc" placeholder="Pasos en caso de error"></div>
+        <button class="btn admin-only" id="btnCreateRFC">Crear Solicitud de Cambio</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:15px">Historial de Solicitudes (RFC)</h3>
+      <div id="rfcList" style="display:grid;gap:8px;max-height:360px;overflow-y:auto"></div>
+    </div>
+  </div>
+</section>
+
+<section id="incidents">
+  <h2>4. Registro de Incidentes Reales e Impacto Financiero</h2>
+  <p class="sub">Registra caídas activas para medir en tiempo real el tiempo fuera de servicio (Downtime) y la pérdida económica estimada en Soles (S/).</p>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:15px">Reportar Falla / Incidente en CI</h3>
+      <div class="form" style="grid-template-columns:1fr">
+        <div><label for="incCI">CI Afectado</label><select id="incCI"></select></div>
+        <div><label for="incHours">Duración estimada/real (Horas)</label><input type="number" id="incHours" min="0.1" step="0.5" value="1"></div>
+        <div><label for="incDesc">Descripción de la avería</label><input type="text" id="incDesc" placeholder="Ej. Caída de disco en arreglo SAN"></div>
+        <button class="btn danger admin-only" id="btnReportInc">Registrar Incidente</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:15px">Bitácora de Incidentes e Impacto Acumulado</h3>
+      <div id="incList" style="display:grid;gap:8px;max-height:360px;overflow-y:auto"></div>
+    </div>
+  </div>
+</section>
+
+<section id="ciclo">
+  <h2>Ciclo de Vida, Licenciamiento, 6. Redundancia (HA) y 7. Presupuesto</h2>
+  <p class="sub">Inventario maestro de la CMDB. Gestiona mantenimientos, renovaciones contractuales, metas RTO/RPO y costos anuales.</p>
+  <div class="ctrl">
+    <div><label for="q">Buscar activo</label><input type="search" id="q" placeholder="Nombre o proveedor..."></div>
+    <div class="chips" id="fchips" style="margin:0"></div>
+  </div>
+  <div class="card tw">
+    <table>
+      <thead>
+        <tr>
+          <th>Activo / CI</th>
+          <th>Proveedor y versión</th>
+          <th>HA (Redundancia)</th>
+          <th>Soporte Hasta</th>
+          <th>Trimestre</th>
+          <th>Etapa</th>
+          <th>Parches</th>
+          <th>Costo Anual</th>
+          <th>Riesgo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3 style="margin:0 0 8px;font-size:15px">Alertas Activas de Soporte</h3><div id="alerts"></div></div>
+    <div class="card"><h3 style="margin:0 0 8px;font-size:15px">Historial de Cambios / Audit Log</h3><div id="log"></div></div>
+  </div>
+</section>
+
+<section id="salud" style="background:var(--bg2);border-top:1px solid var(--line)">
+  <h2>8. Cumplimiento Normativo del Sector Salud en Perú</h2>
+  <p class="sub">Matriz de trazabilidad legal respecto a la Protección de Datos Personales (Ley 29733), Historia Clínica Electrónica (Ley 30024) y Controles ISO/IEC 27001.</p>
+  <div class="card tw">
+    <table>
+      <thead>
+        <tr>
+          <th>Activo / Sistema</th>
+          <th>Datos Sensibles (Pacientes)</th>
+          <th>Ley 29733 (PDP)</th>
+          <th>Ley 30024 (HCE / RNPIS)</th>
+          <th>ISO 27001 (A.5.29 / A.8.14)</th>
+          <th>Estado de Cumplimiento</th>
+        </tr>
+      </thead>
+      <tbody id="tbHealth"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="alta">
+  <h2>Alta de Nuevo Activo de Configuración (CI)</h2>
+  <p class="sub">Registra un nuevo elemento en la CMDB. Selecciona si tiene Alta Disponibilidad (HA) para que aparezca como Punto Único de Falla si no cuenta con respaldo.</p>
+  <div class="card form">
+    <div><label for="an">Nombre del CI</label><input type="text" id="an" maxlength="32" placeholder="Ej. PC Triage Urgencias"></div>
+    <div><label for="av">Proveedor y versión</label><input type="text" id="av" maxlength="40" placeholder="Ej. HP ProDesk i5"></div>
+    <div><label for="at">Tipo de Capa</label><select id="at"><option value="infra">Infraestructura</option><option value="serv">Servidor / BD</option><option value="app" selected>Aplicación</option></select></div>
+    <div><label for="ad">Depende de (Padre en red)</label><select id="ad"></select></div>
+    <div><label for="ap">Sostiene el Proceso</label><select id="ap"></select></div>
+    <div><label for="ae">Fin de Soporte</label><input type="date" id="ae"></div>
+    <div><label for="ac">Costo Anual (S/)</label><input type="number" id="ac" min="0" step="500" value="2500"></div>
+    <div><label for="aha">Alta Disponibilidad (HA)</label><select id="aha"><option value="true">Sí (Redundante)</option><option value="false" selected>No (Punto Único - SPOF)</option></select></div>
+    <div><button class="btn admin-only" id="add">Registrar y Conectar Activo</button></div>
+  </div>
+</section>
+
+<footer>
+  <div><b>InfraGuard CMDB v2.5</b> · Sistema de Gestión de Configuración para Instituciones de Salud.</div>
+  <div><button class="btn g sm" id="btnResetData">🔄 Restablecer Datos de Fábrica</button></div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<div class="modal-bg" id="modalEdit">
+  <div class="modal">
+    <h3>Editar Activo de Configuración</h3>
+    <input type="hidden" id="editId">
+    <div class="form" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:span 2"><label for="editN">Nombre del Activo</label><input type="text" id="editN"></div>
+      <div><label for="editV">Proveedor y Versión</label><input type="text" id="editV"></div>
+      <div><label for="editC">Costo Anual (S/)</label><input type="number" id="editC"></div>
+      <div><label for="editE">Días Restantes Soporte</label><input type="number" id="editE"></div>
+      <div><label for="editP">Estado de Parches</label><select id="editP"><option value="ok">Al día</option><option value="pend">Pendiente</option><option value="crit">Crítico</option></select></div>
+      <div><label for="editF">Etapa Ciclo de Vida</label><select id="editF"><option value="adq">Adquisición</option><option value="op">Operación</option><option value="mant">Mantenimiento</option></select></div>
+      <div><label for="editHA">Tiene Redundancia (HA)</label><select id="editHA"><option value="true">Sí</option><option value="false">No (Punto Único)</option></select></div>
+      <div><label for="editM">Horas Est. Solución / Mant.</label><input type="number" id="editM" min="0.5" step="0.5" placeholder="Ej. 4 ó 48"></div>
+      <div><label for="editParent">Depende de (Padre en red)</label><select id="editParent"></select></div>
+      <div><label for="editProc">Sostiene Proceso Clínico</label><select id="editProc"></select></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+      <button class="btn g" onclick="closeModal()">Cancelar</button>
+      <button class="btn admin-only" id="btnSaveEdit">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_CI = [
+{id:"ups",n:"UPS y Generador 40kVA",t:"infra",v:"Vertiv Liebert 40 kVA",d:[],e:320,c:23250,p:"ok",f:"op",ha:true,pdp:false,hce:false,m:6},
+{id:"net",n:"Switch Core Nexus",t:"infra",v:"Cisco Catalyst 9500",d:["ups"],e:75,c:36750,p:"pend",f:"op",ha:true,pdp:false,hce:false,m:8},
+{id:"fw",n:"Firewall Perimetral",t:"infra",v:"Fortinet FG-200F",d:["net"],e:40,c:46500,p:"crit",f:"op",ha:false,pdp:true,hce:true,m:4},
+{id:"san",n:"Almacenamiento SAN",t:"infra",v:"Dell PowerStore 500T",d:["net","ups"],e:210,c:105000,p:"ok",f:"op",ha:true,pdp:true,hce:true,m:48},
+{id:"vm",n:"Clúster VMware vSphere",t:"infra",v:"vSphere 7.0 Enterprise",d:["san","net"],e:-20,c:135000,p:"pend",f:"op",ha:true,pdp:true,hce:true,m:12},
+{id:"dbh",n:"BD Principal Oracle HCE",t:"serv",v:"Oracle 19c RAC",d:["vm","san"],e:160,c:202500,p:"ok",f:"op",ha:true,pdp:true,hce:true,m:24},
+{id:"dbl",n:"BD PostgreSQL LIS",t:"serv",v:"PostgreSQL 13 Enterprise",d:["vm"],e:95,c:1800,p:"ok",f:"op",ha:false,pdp:true,hce:false,m:6},
+{id:"dcm",n:"Servidor Imágen DICOM",t:"serv",v:"Agfa Enterprise Imaging",d:["san","vm"],e:260,c:82500,p:"ok",f:"op",ha:true,pdp:true,hce:true,m:18},
+{id:"ad",n:"Active Directory Domain",t:"serv",v:"Windows Server 2016",d:["vm"],e:30,c:28500,p:"pend",f:"op",ha:false,pdp:true,hce:false,m:3},
+{id:"hce",n:"Sistema Historia Clínica",t:"app",v:"MedSoft HIS 8.2",d:["dbh","ad"],e:130,c:153750,p:"ok",f:"op",ha:true,pdp:true,hce:true,m:4},
+{id:"lis",n:"Sistema Lab LIS Core",t:"app",v:"LabCore 5.1",d:["dbl","ad"],e:50,c:58100,p:"crit",f:"op",ha:false,pdp:true,hce:false,m:5},
+{id:"pacs",n:"Visor Imágenes PACS",t:"app",v:"Agfa Viewer 12",d:["dcm"],e:200,c:67500,p:"ok",f:"op",ha:true,pdp:true,hce:true,m:3},
+{id:"farm",n:"Gestión Farmacia HIS",t:"app",v:"FarmaStock 4",d:["dbh"],e:300,c:33750,p:"ok",f:"op",ha:false,pdp:true,hce:false,m:2},
+{id:"fact",n:"Facturación SUNAT OSE",t:"app",v:"Conector OSE v3",d:["dbh","fw"],e:25,c:30750,p:"pend",f:"op",ha:false,pdp:false,hce:false,m:4},
+{id:"cita",n:"Portal Web Citas ERP",t:"app",v:"Web App React / Node",d:["fw","dbh"],e:180,c:13500,p:"ok",f:"op",ha:false,pdp:true,hce:false,m:2},
+{id:"adm",n:"Admisión y Registro",t:"proc",k:2,r:"2 h",d:["hce","cita"],h:4500},
+{id:"urg",n:"Atención Urgencias",t:"proc",k:3,r:"15 min",d:["hce","lis","pacs"],h:28000},
+{id:"lab",n:"Analítica Laboratorio",t:"proc",k:3,r:"1 h",d:["lis"],h:9000},
+{id:"img",n:"Diagnóstico Imágenes",t:"proc",k:2,r:"2 h",d:["pacs"],h:7000},
+{id:"far",n:"Dispensación Medicamentos",t:"proc",k:3,r:"30 min",d:["farm"],h:8000},
+{id:"qui",n:"Centro Quirúrgico",t:"proc",k:3,r:"15 min",d:["hce","pacs"],h:45000},
+{id:"fac",n:"Caja y Facturación",t:"proc",k:1,r:"8 h",d:["fact"],h:3000}
+];
+
+let CI = JSON.parse(localStorage.getItem("infraguard_ci")) || JSON.parse(JSON.stringify(DEFAULT_CI));
+let RFCs = JSON.parse(localStorage.getItem("infraguard_rfcs")) || [
+  {id:"RFC-101",t:"Actualización Parche Oracle HCE",ci:"dbh",d:"2026-11-15",s:"Programado",b:"Rollback a Snapshot VMware"},
+  {id:"RFC-102",t:"Reemplazo de Baterías UPS",ci:"ups",d:"2026-11-20",s:"Aprobado",b:"Bypass a Red Comercial"}
+];
+let INCIDENTES = JSON.parse(localStorage.getItem("infraguard_incidents")) || [
+  {id:"INC-001",ci:"lis",h:2,desc:"Falla de disco en servidor PostgreSQL",loss:18000,t:"10/24 14:30"}
+];
+let LOG = JSON.parse(localStorage.getItem("infraguard_log")) || [];
+let currentRole = "admin";
+
+const Y = {proc:60,app:190,serv:330,infra:470};
+const TL = {proc:"Proceso clínico",app:"Aplicación",serv:"Servidor / BD",infra:"Infraestructura"};
+const KL = {3:"Vital",2:"Alta",1:"Media"};
+const ST = {adq:"Adquisición",op:"Operación",mant:"Mantenimiento"};
+const PT = {ok:["Al día","ok"],pend:["Pendiente","warn"],crit:["Crítico","bad"]};
+
+const $ = s => document.querySelector(s);
+const money = n => "S/ " + (n||0).toLocaleString("es-PE");
+const esc = s => (s||"").replace(/[&<>"]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const by = id => CI.find(c => c.id === id);
+
+function saveState(){
+  localStorage.setItem("infraguard_ci", JSON.stringify(CI));
+  localStorage.setItem("infraguard_rfcs", JSON.stringify(RFCs));
+  localStorage.setItem("infraguard_incidents", JSON.stringify(INCIDENTES));
+  localStorage.setItem("infraguard_log", JSON.stringify(LOG));
+}
+
+function toast(m){
+  const t = $("#toast"); t.textContent = m; t.classList.add("on");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 2800);
+}
+function log(m){
+  LOG.unshift([new Date().toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}), m]);
+  if(LOG.length>30) LOG.pop();
+  saveState(); toast(m);
+}
+
+function layout(){
+  Object.keys(Y).forEach(t => {
+    const a = CI.filter(c => c.t === t);
+    const count = a.length;
+    a.forEach((c, i) => {
+      c.x = 90 + (i * (1080 / Math.max(1, count - 1 || 1)));
+      c.y = Y[t];
+    });
+  });
+}
+layout();
+
+function up(id){
+  const s = new Set(), q = [id];
+  while(q.length){
+    const x = q.shift();
+    CI.forEach(c => { if((c.d||[]).includes(x) && !s.has(c.id)){ s.add(c.id); q.push(c.id); } });
+  }
+  return s;
+}
+function down(id){
+  const s = new Set(), q = [id];
+  while(q.length){
+    const x = q.shift();
+    const item = by(x);
+    if(item && item.d) item.d.forEach(d => { if(!s.has(d)){ s.add(d); q.push(d); } });
+  }
+  return s;
+}
+
+const hidden = new Set();
+let sel = null, hoverId = null;
+let zoom = 1, panX = 0, panY = 0, isDragging = false, startX, startY;
+
+function graph(svg, o){
+  const s = o.sel || sel;
+  const hId = o.hover || hoverId;
+  const imp = o.vis || (s ? up(s) : new Set());
+  const dep = (s && !o.sim) ? down(s) : new Set();
+  
+  const hImp = hId ? up(hId) : new Set();
+  const hDep = hId ? down(hId) : new Set();
+
+  const spofs = detectSPOFs();
+  let h = `<g transform="translate(${panX},${panY}) scale(${zoom})">`;
+
+  Object.keys(Y).forEach(t => h += `<text class="lane" x="12" y="${Y[t]-28}">${TL[t]}</text>`);
+
+  CI.forEach(c => (c.d||[]).forEach(d => {
+    const b = by(d), a = c;
+    if(!b) return;
+    let k = "e";
+    if(s && (d === s || imp.has(d)) && imp.has(c.id)) k += " act";
+    else if(dep.size && (c.id === s || dep.has(c.id))) k += " dep";
+    if(hId && (d === hId || hImp.has(d) || hDep.has(c.id))) k += " hl";
+
+    const my = (a.y + 15 + b.y - 15) / 2;
+    h += `<path class="${k}" d="M${a.x} ${a.y+15}C${a.x} ${my} ${b.x} ${my} ${b.x} ${b.y-15}"/>`;
+  }));
+
+  CI.forEach(c => {
+    let k = "n";
+    if(c.id === s) k += " sel";
+    else if(imp.has(c.id)) k += " imp";
+    else if(dep.has(c.id)) k += " dep";
+    else if(s) k += " dim";
+
+    if(hId && (c.id === hId || hImp.has(c.id) || hDep.has(c.id))) k += " hl";
+    if(spofs.includes(c.id)) k += " spof";
+    if(hidden.has(c.t)) k += " off";
+    if(c.f === "mant") k += " mt";
+
+    const w = Math.max(104, c.n.length * 6.8 + 16);
+    h += `<g class="${k}" data-id="${c.id}" tabindex="0" role="button" aria-label="${c.n}">
+      <rect x="${c.x-w/2}" y="${c.y-16}" width="${w}" height="32" rx="6"/>
+      <text x="${c.x}" y="${c.y+4}">${c.n}</text>
+    </g>`;
+  });
+
+  h += `</g>`;
+  svg.innerHTML = h;
+}
+
+function drawMap(){ graph($("#g1"), {sel, hover: hoverId}); detail(); }
+
+function detail(){
+  const d = $("#detail");
+  if(!sel){ d.innerHTML = '<p style="color:var(--mut);margin:0">Selecciona un CI del grafo para ver su ficha técnica.</p>'; return; }
+  const c = by(sel);
+  if(!c){ d.innerHTML = ''; return; }
+  const u = [...up(sel)].map(by), dp = (c.d||[]).map(by), pr = u.filter(x => x && x.t === "proc");
+  const risk = calculateRiskScore(c);
+  
+  d.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <h3 style="margin:0 0 4px;font-size:16px">${c.n}</h3>
+      <button class="btn g sm admin-only" onclick="openEditModal('${c.id}')">✏️ Editar</button>
+    </div>
+    <span class="tag">${TL[c.t]}</span> <span class="tag ${risk>60?'bad':risk>30?'warn':'ok'}">Riesgo: ${risk}/100</span>
+    <dl class="dl">
+      ${c.v ? `<dt>Proveedor y versión</dt><dd>${c.v}</dd>` : `<dt>Criticidad</dt><dd>${KL[c.k]} · RTO ${c.r}</dd>`}
+      ${c.t !== "proc" ? `<dt>Alta Disponibilidad (HA)</dt><dd>${c.ha ? '✅ Redundante' : '❌ Punto Único (No HA)'}</dd>` : ''}
+      ${c.m ? `<dt>Est. Solución / Mant.</dt><dd>${formatDuration(c.m)}</dd>` : ''}
+      <dt>Depende de</dt><dd>${dp.map(x=>x.n).join(", ")||"Sin dependencias"}</dd>
+      <dt>Elementos afectados si falla</dt><dd>${u.length}</dd>
+      <dt>Procesos clínicos en riesgo</dt><dd>${pr.map(x=>x.n).join(", ")||"Ninguno"}</dd>
+      ${c.c ? `<dt>Costo Anual de Soporte</dt><dd>${money(c.c)}</dd>` : ''}
+    </dl>`;
+  applyRolePermissions();
+}
+
+const svg1 = $("#g1");
+svg1.addEventListener("click", e => {
+  const g = e.target.closest(".n");
+  if(g){ sel = sel === g.dataset.id ? null : g.dataset.id; drawMap(); }
+});
+svg1.addEventListener("mouseover", e => {
+  const g = e.target.closest(".n");
+  if(g && hoverId !== g.dataset.id){ hoverId = g.dataset.id; drawMap(); }
+});
+svg1.addEventListener("mouseout", e => {
+  if(hoverId){ hoverId = null; drawMap(); }
+});
+
+$("#zIn").onclick = () => { zoom *= 1.2; drawMap(); };
+$("#zOut").onclick = () => { zoom /= 1.2; drawMap(); };
+$("#zRst").onclick = () => { zoom = 1; panX = 0; panY = 0; drawMap(); };
+
+svg1.addEventListener("mousedown", e => { if(e.target.tagName==='svg'||e.target.tagName==='path'){ isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY; } });
+window.addEventListener("mousemove", e => { if(isDragging){ panX = e.clientX - startX; panY = e.clientY - startY; drawMap(); } });
+window.addEventListener("mouseup", () => isDragging = false);
+
+$("#chips").innerHTML = Object.keys(TL).map(t => `<button class="chip" aria-pressed="true" data-t="${t}">${TL[t]}</button>`).join("");
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  const t = b.dataset.t;
+  hidden.has(t) ? hidden.delete(t) : hidden.add(t);
+  b.setAttribute("aria-pressed", !hidden.has(t));
+  drawMap();
+});
+
+function detectSPOFs(){
+  const spofs = [];
+  CI.filter(c => c.t !== "proc").forEach(c => {
+    if(!c.ha){
+      spofs.push(c.id);
+    }
+  });
+  return spofs;
+}
+
+function calculateRiskScore(c){
+  if(c.t === "proc"){
+    const deps = down(c.id);
+    if(!deps.size) return 0;
+    
+    let maxRisk = 0;
+    deps.forEach(depId => {
+      const depAsset = by(depId);
+      if(depAsset && depAsset.t !== "proc"){
+        const score = calculateRiskScore(depAsset);
+        if(score > maxRisk) maxRisk = score;
+      }
+    });
+    return maxRisk;
+  }
+
+  let score = 0;
+  const affected = [...up(c.id)].map(by);
+  if(affected.some(a => a && a.k === 3)) score += 40;
+  else if(affected.some(a => a && a.k === 2)) score += 20;
+
+  if(c.e < 0) score += 30;
+  else if(c.e < 90) score += 20;
+
+  if(c.p === "crit") score += 15;
+  else if(c.p === "pend") score += 8;
+
+  if(!c.ha) score += 15;
+  return Math.min(100, score);
+}
+
+function renderSPOFAndRisk(){
+  const spofIds = detectSPOFs();
+  $("#spofList").innerHTML = spofIds.map(id => {
+    const c = by(id);
+    return `<div class="al">
+      <div>
+        <b>${c.n}</b> <span class="tag bad">Sin Redundancia (SPOF)</span><br>
+        <span style="color:var(--mut);font-size:12px">Capa: ${TL[c.t]} · Activo crítico sin respaldo</span>
+      </div>
+      <button class="btn g sm admin-only" onclick="openEditModal('${c.id}')">Resolver HA</button>
+    </div>`;
+  }).join("") || '<p style="color:var(--mut);margin:0">No se detectaron Puntos Únicos de Falla.</p>';
+
+  const ranked = CI.filter(c => c.t !== "proc")
+    .map(c => ({c, score: calculateRiskScore(c)}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 6);
+
+  $("#riskList").innerHTML = ranked.map(item => `
+    <div class="al">
+      <span><b>${item.c.n}</b> (${TL[item.c.t]})</span>
+      <span class="tag ${item.score>60?'bad':item.score>30?'warn':'ok'}">Score: ${item.score}/100</span>
+    </div>
+  `).join("");
+}
+
+let mode = "fail", timers = [];
+function syncDropdowns(){
+  const allCI = CI.filter(c => c.t !== "proc").map(c => `<option value="${c.id}">${c.n} (${TL[c.t]})</option>`).join("");
+  const parentCI = CI.filter(c => c.t !== "proc").map(c => `<option value="${c.id}">${c.n}</option>`).join("");
+  const procs = CI.filter(c => c.t === "proc").map(c => `<option value="${c.id}">${c.n}</option>`).join("");
+
+  $("#selCI").innerHTML = allCI;
+  $("#rfcCI").innerHTML = allCI;
+  $("#incCI").innerHTML = allCI;
+  $("#ad").innerHTML = '<option value="">Ninguna (Nivel raíz)</option>' + parentCI;
+  $("#ap").innerHTML = '<option value="">Ninguno</option>' + procs;
+  $("#editParent").innerHTML = '<option value="">Ninguna (Nivel raíz)</option>' + parentCI;
+  $("#editProc").innerHTML = '<option value="">Ninguno</option>' + procs;
+}
+
+[["m1","fail"],["m2","maint"]].forEach(([id,m]) => $("#"+id).onclick = () => {
+  mode = m;
+  $("#m1").setAttribute("aria-pressed", m === "fail");
+  $("#m2").setAttribute("aria-pressed", m === "maint");
+});
+
+function simulate(){
+  timers.forEach(clearTimeout); timers = [];
+  const id = $("#selCI").value, all = up(id), vis = new Set();
+  const lv = []; let cur = [id], seen = new Set([id]);
+
+  while(cur.length){
+    const nx = [];
+    CI.forEach(c => {
+      if(!seen.has(c.id) && (c.d||[]).some(d => cur.includes(d))){
+        seen.add(c.id); nx.push(c.id);
+      }
+    });
+    if(nx.length) lv.push(nx);
+    cur = nx;
+  }
+
+  graph($("#g2"), {sel: id, vis, sim: 1});
+  $("#result").innerHTML = '<p style="color:var(--mut);margin:0">Propagando efecto de cascada...</p>';
+
+  lv.forEach((l, i) => timers.push(setTimeout(() => {
+    l.forEach(x => vis.add(x));
+    graph($("#g2"), {sel: id, vis, sim: 1});
+    if(i === lv.length - 1) reportSim(id, all);
+  }, 400 * (i + 1))));
+
+  if(!lv.length) reportSim(id, all);
+}
+
+// Formatear duración en Horas o Días según la cantidad
+function formatDuration(h){
+  if(h >= 24){
+    const days = (h / 24).toFixed(1).replace(/\.0$/, '');
+    return `${days} día(s) (${h} hrs)`;
+  }
+  return `${h} hora(s)`;
+}
+
+function reportSim(id, all){
+  const c = by(id); if(!c) return;
+  const ps = [...all].map(by).filter(x => x && x.t === "proc").sort((a,b) => b.k - a.k);
+  const vital = ps.filter(p => p.k === 3).length;
+  const lossPerHour = ps.reduce((s,p) => s + (p.h||0), 0);
+
+  // Determinar horas estimadas de solución / mantenimiento según modo y severidad
+  const baseHours = c.m || (mode === "fail" ? (c.t === "infra" ? 12 : 4) : 3);
+  const estHours = mode === "fail" ? baseHours : Math.max(1, Math.round(baseHours / 2));
+  const totalCost = lossPerHour * estHours;
+
+  let b = mode === "fail"
+    ? (vital ? `<div class="banner bad"><b>Impacto Crítico Operativo.</b> ${vital} proceso(s) vitales quedan suspendidos.</div>`
+             : ps.length ? `<div class="banner warn"><b>Impacto Moderado.</b> Servicios asistenciales afectados.</div>`
+                         : `<div class="banner ok"><b>Sin Impacto Clínico Directo.</b></div>`)
+    : (vital ? `<div class="banner warn"><b>Ventana de Alto Riesgo.</b> Requiere ventana de trabajo nocturna supervisada.</div>`
+             : `<div class="banner ok"><b>Mantenimiento Seguro.</b> Ejecución en horario normal.</div>`);
+
+  $("#result").innerHTML = `
+    <h3 style="margin:0 0 8px;font-size:15px">${mode === "fail" ? "Falla" : "Mantenimiento"}: ${c.n}</h3>
+    ${b}
+    <div style="background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--line);margin-bottom:10px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span>⏱️ <b>${mode === "fail" ? "Tiempo est. solución (MTTR):" : "Ventana de mantenimiento:"}</b></span>
+        <b style="color:var(--ac2)">${formatDuration(estHours)}</b>
+      </div>
+      ${mode === "fail" && ps.length ? `
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span>💸 Pérdida estimada por hora:</span>
+        <b>${money(lossPerHour)}/h</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-top:1px dashed var(--line);padding-top:4px;margin-top:4px">
+        <span>💰 <b>Impacto financiero total:</b></span>
+        <b style="color:var(--bad)">${money(totalCost)}</b>
+      </div>` : ''}
+    </div>
+    <p style="margin:0 0 8px;font-size:12px;color:var(--mut)">
+      ${all.size} componentes impactados en total:
+    </p>
+    <ul class="res">${ps.map(p => `<li><span>${p.n}</span><span class="tag ${p.k===3?"bad":p.k===2?"warn":"ok"}">${KL[p.k]} · RTO ${p.r}</span></li>`).join("") || "<li>Ningún proceso clínico afectado</li>"}</ul>`;
+}
+$("#run").onclick = simulate;
+$("#selCI").onchange = () => graph($("#g2"), {sel: $("#selCI").value, vis: new Set(), sim: 1});
+
+function renderRFCs(){
+  $("#rfcList").innerHTML = RFCs.map(r => {
+    const c = by(r.ci);
+    return `<div class="al">
+      <div>
+        <b>${r.t}</b> (${c?c.n:'CI'})<br>
+        <span style="color:var(--mut);font-size:11px">Fecha: ${r.d} · Rollback: ${r.b}</span>
+      </div>
+      <div>
+        <span class="tag ${r.s==='Aprobado'?'ok':r.s==='Programado'?'warn':'bad'}">${r.s}</span>
+        ${r.s==='Programado' ? `<button class="btn g sm admin-only" onclick="approveRFC('${r.id}')">Aprobar</button>` : ''}
+      </div>
+    </div>`;
+  }).join("") || '<p style="color:var(--mut);margin:0">No hay solicitudes de cambio registradas.</p>';
+}
+
+$("#btnCreateRFC").onclick = () => {
+  const t = $("#rfcTitle").value.trim(), ci = $("#rfcCI").value, d = $("#rfcDate").value, b = $("#rfcDesc").value.trim();
+  if(!t || !d) return toast("Completa el título y la fecha programada.");
+  RFCs.unshift({id:"RFC-"+Date.now().toString().slice(-3), t, ci, d, s:"Programado", b: b||"Sin plan definido"});
+  saveState(); renderRFCs(); log(`RFC Registrado: ${t}`);
+  $("#rfcTitle").value = ""; $("#rfcDesc").value = "";
+};
+
+function approveRFC(id){
+  const r = RFCs.find(x => x.id === id);
+  if(r){ r.s = "Aprobado"; saveState(); renderRFCs(); log(`RFC Aprobado: ${r.t}`); }
+}
+
+function renderIncidents(){
+  const totalLoss = INCIDENTES.reduce((s,i) => s + (i.loss||0), 0);
+  $("#incList").innerHTML = `<div style="margin-bottom:8px;font-weight:600;color:var(--bad)">Pérdida Económica Acumulada por Incidencias: ${money(totalLoss)}</div>` +
+    INCIDENTES.map(i => {
+      const c = by(i.ci);
+      return `<div class="al">
+        <div>
+          <b>${c?c.n:'CI'}</b> — ${i.desc}<br>
+          <span style="color:var(--mut);font-size:11px">Duración: ${formatDuration(i.h)} · Fecha: ${i.t}</span>
+        </div>
+        <span class="tag bad">Impacto: ${money(i.loss)}</span>
+      </div>`;
+    }).join("");
+}
+
+$("#btnReportInc").onclick = () => {
+  const ci = $("#incCI").value, h = parseFloat($("#incHours").value), desc = $("#incDesc").value.trim();
+  if(!desc || !h) return toast("Ingresa la descripción y duración del incidente.");
+  
+  const affectedProcs = [...up(ci)].map(by).filter(x => x && x.t === "proc");
+  const lossPerHour = affectedProcs.reduce((s,p) => s + (p.h||0), 0);
+  const totalLoss = lossPerHour * h;
+
+  INCIDENTES.unshift({
+    id: "INC-" + Date.now().toString().slice(-3),
+    ci, h, desc, loss: totalLoss,
+    t: new Date().toLocaleDateString("es-PE") + " " + new Date().toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"})
+  });
+  saveState(); renderIncidents(); log(`Incidente registrado en ${by(ci).n}. Pérdida: ${money(totalLoss)}`);
+  $("#incDesc").value = "";
+};
+
+$("#btnScan").onclick = () => {
+  toast("🔍 Escaneando subredes de infraestructura hospitalaria...");
+  setTimeout(() => {
+    const mockDiscovered = {
+      id: "scan_" + Date.now().toString().slice(-4),
+      n: "Servidor Telemedicina HD",
+      t: "serv",
+      v: "Ubuntu Server 24.04 LTS",
+      d: ["vm"], e: 365, c: 12000, p: "ok", f: "adq", ha: false, pdp: true, hce: false, m: 8
+    };
+    if(confirm(`¡Nuevo activo detectado en 192.168.10.45!\n\nNombre: ${mockDiscovered.n}\nSoftware: ${mockDiscovered.v}\n\n¿Deseas incorporarlo al inventario activo de la CMDB?`)){
+      CI.push(mockDiscovered);
+      layout(); syncDropdowns(); saveState(); renderAll();
+      log(`Activo descubierto e incorporado: ${mockDiscovered.n}`);
+    }
+  }, 1500);
+};
+
+function renderHealthNorms(){
+  const apps = CI.filter(c => c.t === "app" || c.t === "serv");
+  $("#tbHealth").innerHTML = apps.map(c => `
+    <tr>
+      <td><b>${c.n}</b><br><span style="color:var(--mut);font-size:11px">${c.v}</span></td>
+      <td>${c.pdp ? '🔒 Sí (Datos Paciente)' : '⚪ No'}</td>
+      <td><span class="tag ${c.pdp?'ok':'warn'}">${c.pdp ? 'Ley 29733 Ok' : 'N/A'}</span></td>
+      <td><span class="tag ${c.hce?'ok':'warn'}">${c.hce ? 'RNPIS / Ley 30024' : 'Estándar'}</span></td>
+      <td><span class="tag ${c.ha?'ok':'bad'}">${c.ha ? 'A.5.29 / A.8.14 OK' : 'Control Pendiente'}</span></td>
+      <td><span class="tag ${c.pdp && c.ha ? 'ok' : 'warn'}">${c.pdp && c.ha ? 'Conforme' : 'Observado'}</span></td>
+    </tr>
+  `).join("");
+}
+
+let flt = "all";
+const dt = d => { const x = new Date(); x.setDate(x.getDate() + d); return x.toLocaleDateString("es-PE",{day:"2-digit",month:"short",year:"numeric"}); };
+const getQuarter = d => {
+  const x = new Date(); x.setDate(x.getDate() + d);
+  return "Q" + (Math.floor(x.getMonth() / 3) + 1) + " " + x.getFullYear();
+};
+
+function life(){
+  const L = CI.filter(c => c.t !== "proc");
+  const q = ($("#q").value || "").toLowerCase();
+  const al = [];
+
+  L.forEach(c => {
+    if(c.e < 90) al.push({c, x:"r", u: c.e<0 || c.p==="crit" ? 0 : 1, m: `${c.n}: soporte ${c.e<0 ? "vencido" : "vence en "+c.e+" días"} · renovar ${money(c.c)}`});
+    if(c.p !== "ok") al.push({c, x:"p", u: c.p==="crit" ? 0 : 1, m: `${c.n}: parche ${c.p==="crit" ? "crítico" : "pendiente"}`});
+  });
+
+  const cost = L.reduce((s,c) => s + (c.c||0), 0);
+  const ren = L.filter(c => c.e < 90).reduce((s,c) => s + (c.c||0), 0);
+  const spofsCount = detectSPOFs().length;
+
+  $("#kpiDash").innerHTML = [
+    [L.length, "Activos Registrados", "all"],
+    [money(cost), "Presupuesto Soporte", "all"],
+    [money(ren), "Renovaciones 90 días", "soon"],
+    [spofsCount, "Puntos Únicos de Falla", "risk"],
+    [INCIDENTES.length, "Incidentes Registrados", "all"]
+  ].map(k => `<div class="card kpi" onclick="filterByKpi('${k[2]}')"><b>${k[0]}</b><span>${k[1]}</span></div>`).join("");
+
+  $("#alerts").innerHTML = al.sort((a,b) => a.u - b.u).map(a => `
+    <div class="al">
+      <span><span class="tag ${a.u?"warn":"bad"}">${a.u?"Atención":"Urgente"}</span> ${a.m}</span>
+      <button class="btn g sm admin-only" data-x="${a.x}" data-id="${a.c.id}">${a.x==="r"?"Renovar":"Parchar"}</button>
+    </div>
+  `).join("") || '<p style="color:var(--mut);margin:0">Sin alertas contractuales o críticas pendientes.</p>';
+
+  $("#log").innerHTML = LOG.slice(0, 8).map(l => `<div class="logrow"><time>${l[0]}</time><span>${esc(l[1])}</span></div>`).join("") || '<p style="color:var(--mut);margin:0">No hay eventos registrados.</p>';
+
+  const f = L.filter(c => (
+    flt === "all" ||
+    (flt === "risk" && (c.e < 90 || c.p === "crit" || !c.ha)) ||
+    (flt === "soon" && c.e >= 90 && c.e < 180) ||
+    (flt === "ok" && c.e >= 180 && c.p === "ok")
+  ) && (c.n + c.v).toLowerCase().includes(q));
+
+  $("#tb").innerHTML = f.sort((a,b) => a.e - b.e).map(c => {
+    const s = c.e < 0 ? ["Vencido","bad"] : c.e < 90 ? ["Crítico","bad"] : c.e < 180 ? ["Por vencer","warn"] : ["Vigente","ok"];
+    const p = PT[c.p] || PT.ok;
+    const rScore = calculateRiskScore(c);
+
+    return `<tr>
+      <td><b>${c.n}</b><br><span style="color:var(--mut);font-size:11px">${TL[c.t]}</span></td>
+      <td>${c.v}</td>
+      <td><span class="tag ${c.ha?'ok':'bad'}">${c.ha?'HA Sí':'No HA'}</span></td>
+      <td>${dt(c.e)}</td>
+      <td><span class="mono" style="font-size:11px">${getQuarter(c.e)}</span></td>
+      <td>
+        <select class="stage admin-only" data-x="s" data-id="${c.id}" aria-label="Etapa de ${c.n}">
+          ${Object.keys(ST).map(k => `<option value="${k}"${k===c.f?" selected":""}>${ST[k]}</option>`).join("")}
+        </select>
+      </td>
+      <td><span class="tag ${p[1]}">${p[0]}</span></td>
+      <td>${money(c.c)}</td>
+      <td><span class="tag ${rScore>60?'bad':rScore>30?'warn':'ok'}">${rScore}</span></td>
+      <td>
+        <button class="btn g sm admin-only" data-x="r" data-id="${c.id}">Renovar</button>
+        <button class="btn g sm admin-only" onclick="openEditModal('${c.id}')">✏️</button>
+        <button class="btn g sm danger admin-only" data-x="b" data-id="${c.id}">Baja</button>
+      </td>
+    </tr>`;
+  }).join("") || '<tr><td colspan="10" style="color:var(--mut)">Ningún activo coincide con el filtro.</td></tr>';
+
+  applyRolePermissions();
+}
+
+function filterByKpi(type){
+  flt = type;
+  document.querySelectorAll("#fchips .chip").forEach(x => x.setAttribute("aria-pressed", x.dataset.f === type));
+  life();
+  window.location.hash = "#ciclo";
+}
+
+$("#fchips").innerHTML = [["all","Todos"],["risk","En riesgo / SPOF"],["soon","Por vencer"],["ok","Vigentes"]].map(([k,l]) => `<button class="chip" data-f="${k}" aria-pressed="${k==="all"}">${l}</button>`).join("");
+$("#fchips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  flt = b.dataset.f;
+  document.querySelectorAll("#fchips .chip").forEach(x => x.setAttribute("aria-pressed", x === b));
+  life();
+});
+
+$("#tb").addEventListener("click", handleTableActions);
+$("#alerts").addEventListener("click", handleTableActions);
+$("#q").addEventListener("input", () => life());
+
+$("#tb").addEventListener("change", e => {
+  const s = e.target.closest("[data-x=s]"); if(!s) return;
+  const c = by(s.dataset.id);
+  c.f = s.value;
+  log(`${c.n} cambió a etapa de ${ST[c.f]}`);
+  saveState(); life(); drawMap();
+});
+
+function handleTableActions(e){
+  const b = e.target.closest("button"); if(!b || !b.dataset.x) return;
+  const c = by(b.dataset.id), x = b.dataset.x;
+  if(x === "r"){
+    c.e = Math.max(c.e, 0) + 365;
+    log(`Soporte de ${c.n} renovado por 1 año (${money(c.c)})`);
+  } else if(x === "p"){
+    c.p = "ok";
+    log(`Parche de seguridad aplicado en ${c.n}`);
+  } else if(x === "b"){
+    const u = up(c.id).size;
+    if(u) return toast(`No se puede dar de baja: ${u} elementos dependen de ${c.n}`);
+    CI.splice(CI.indexOf(c), 1);
+    CI.forEach(o => o.d = (o.d||[]).filter(d => d !== c.id));
+    if(sel === c.id) sel = null;
+    layout(); syncDropdowns(); drawMap(); log(`${c.n} retirado de la CMDB`);
+  }
+  saveState(); renderAll();
+}
+
+$("#add").onclick = () => {
+  const n = esc($("#an").value.trim()), e = $("#ae").value, cs = $("#ac").value;
+  if(!n || !e || cs === "" || +cs < 0) return toast("Completa el nombre, vencimiento y costo.");
+  
+  const id = "x" + Date.now().toString().slice(-4);
+  const parentId = $("#ad").value;
+  const d = parentId ? [parentId] : [];
+  const days = Math.round((new Date(e+"T00:00") - new Date().setHours(0,0,0,0)) / 864e5);
+  const ha = $("#aha").value === "true";
+
+  CI.push({ id, n, t: $("#at").value, v: esc($("#av").value.trim())||"Genérico", d, e: days, c: +cs, p: "ok", f: "adq", ha, pdp: true, hce: false, m: 4 });
+  if($("#ap").value){ const p = by($("#ap").value); if(p && p.d) p.d.push(id); }
+
+  layout(); syncDropdowns(); saveState(); renderAll();
+  ["an","av","ac","ae"].forEach(i => $("#"+i).value = "");
+  log(`Activo registrado: ${n}`);
+};
+
+function openEditModal(id){
+  const c = by(id); if(!c) return;
+  $("#editId").value = c.id;
+  $("#editN").value = c.n;
+  $("#editV").value = c.v || "";
+  $("#editC").value = c.c || 0;
+  $("#editE").value = c.e || 0;
+  $("#editP").value = c.p || "ok";
+  $("#editF").value = c.f || "op";
+  $("#editHA").value = c.ha ? "true" : "false";
+  $("#editM").value = c.m || 4;
+  
+  $("#editParent").value = (c.d && c.d.length > 0) ? c.d[0] : "";
+
+  const linkedProc = CI.find(item => item.t === "proc" && item.d && item.d.includes(c.id));
+  $("#editProc").value = linkedProc ? linkedProc.id : "";
+
+  $("#modalEdit").classList.add("on");
+}
+function closeModal(){ $("#modalEdit").classList.remove("on"); }
+
+$("#btnSaveEdit").onclick = () => {
+  const id = $("#editId").value;
+  const c = by(id);
+  if(c){
+    c.n = $("#editN").value.trim();
+    c.v = $("#editV").value.trim();
+    c.c = parseFloat($("#editC").value) || 0;
+    c.e = parseInt($("#editE").value) || 0;
+    c.p = $("#editP").value;
+    c.f = $("#editF").value;
+    c.ha = $("#editHA").value === "true";
+    c.m = parseFloat($("#editM").value) || 4;
+
+    const newParent = $("#editParent").value;
+    if(newParent){
+      c.d = [newParent];
+    } else {
+      c.d = [];
+    }
+
+    const newProcId = $("#editProc").value;
+    CI.filter(item => item.t === "proc").forEach(proc => {
+      if(proc.id === newProcId){
+        if(!proc.d.includes(id)) proc.d.push(id);
+      } else {
+        proc.d = (proc.d || []).filter(dId => dId !== id);
+      }
+    });
+
+    saveState(); closeModal(); renderAll(); log(`Activo actualizado y conectado: ${c.n}`);
+  }
+};
+
+$("#userRole").onchange = (e) => {
+  currentRole = e.target.value;
+  const roleNames = {admin:"Administrador TI", lead:"Jefe de Infraestructura", auditor:"Auditor / Salud"};
+  $("#roleBadge").textContent = roleNames[currentRole];
+  applyRolePermissions();
+  toast(`Rol cambiado a: ${roleNames[currentRole]}`);
+};
+
+function applyRolePermissions(){
+  const isAdmin = currentRole === "admin" || currentRole === "lead";
+  document.querySelectorAll(".admin-only").forEach(el => {
+    el.style.display = isAdmin ? "" : "none";
+  });
+}
+
+$("#themeToggle").onclick = () => {
+  const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+  document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  toast(`Modo visual: ${isDark ? "Claro" : "Oscuro"}`);
+  renderCharts();
+};
+
+function drawBarChart(canvasId, labels, data, colors){
+  const cv = document.getElementById(canvasId); if(!cv) return;
+  const ctx = cv.getContext("2d");
+  const w = cv.width = cv.offsetWidth;
+  const h = cv.height = cv.offsetHeight;
+  ctx.clearRect(0,0,w,h);
+
+  const max = Math.max(...data, 1);
+  const padding = 25;
+  const barWidth = (w - padding * 2) / data.length - 15;
+
+  data.forEach((val, i) => {
+    const barH = (val / max) * (h - 50);
+    const x = padding + i * (barWidth + 15);
+    const y = h - padding - barH;
+
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillRect(x, y, barWidth, barH);
+
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--tx");
+    ctx.font = "10px Inter";
+    ctx.textAlign = "center";
+    ctx.fillText(labels[i], x + barWidth/2, h - 8);
+    ctx.fillText(typeof val === 'number' && val > 1000 ? (val/1000).toFixed(0)+'k' : val, x + barWidth/2, y - 5);
+  });
+}
+
+function renderCharts(){
+  const layers = ["infra","serv","app"];
+  const layerCosts = layers.map(l => CI.filter(c => c.t === l).reduce((s,c) => s + (c.c||0), 0));
+  drawBarChart("chartCost", ["Infra", "Serv/BD", "Apps"], layerCosts, ["#4fd1c5", "#ff6a3d", "#f5b73b"]);
+
+  const qData = [0,0,0,0];
+  CI.filter(c=>c.t!=='proc').forEach(c => {
+    if(c.e < 90) qData[0]++;
+    else if(c.e < 180) qData[1]++;
+    else if(c.e < 270) qData[2]++;
+    else qData[3]++;
+  });
+  drawBarChart("chartExpiry", ["Q1", "Q2", "Q3", "Q4"], qData, ["#ff4d5e", "#f5b73b", "#4fd1c5", "#3ecf8e"]);
+
+  const rData = [0,0,0];
+  CI.filter(c=>c.t!=='proc').forEach(c => {
+    const s = calculateRiskScore(c);
+    if(s > 60) rData[2]++;
+    else if(s > 30) rData[1]++;
+    else rData[0]++;
+  });
+  drawBarChart("chartRisk", ["Bajo", "Medio", "Alto"], rData, ["#3ecf8e", "#f5b73b", "#ff4d5e"]);
+}
+
+$("#btnResetData").onclick = () => {
+  if(confirm("¿Restablecer el inventario y configuraciones a los valores de fábrica?")){
+    localStorage.clear();
+    CI = JSON.parse(JSON.stringify(DEFAULT_CI));
+    RFCs = []; INCIDENTES = []; LOG = [];
+    layout(); syncDropdowns(); renderAll(); log("Sistema restablecido a datos de fábrica.");
+  }
+};
+
+(function(){
+  const cv = $("#cv"), x = cv.getContext("2d"), rm = matchMedia("(prefers-reduced-motion:reduce)").matches;
+  let w, h, P = [];
+  function size(){
+    w = cv.width = cv.offsetWidth; h = cv.height = cv.offsetHeight;
+    P = Array.from({length:Math.min(100, w/10)}, () => ({x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.5+.4, v:Math.random()*.25+.05}));
+  }
+  function draw(){
+    x.clearRect(0,0,w,h);
+    const rgb = getComputedStyle(document.documentElement).getPropertyValue("--dots").trim()||"255,255,255";
+    P.forEach(p => {
+      x.fillStyle = `rgba(${rgb},${.15+p.r/4})`;
+      x.fillRect(p.x, p.y, p.r, p.r);
+      if(!rm){ p.y -= p.v; if(p.y < 0) p.y = h; }
+    });
+    if(!rm) requestAnimationFrame(draw);
+  }
+  size(); draw(); addEventListener("resize", () => { size(); if(rm) draw(); });
+})();
+
+function renderAll(){
+  drawMap();
+  life();
+  renderSPOFAndRisk();
+  renderRFCs();
+  renderIncidents();
+  renderHealthNorms();
+  renderCharts();
+  applyRolePermissions();
+}
+
+syncDropdowns();
+$("#selCI").value = "dbh";
+renderAll();
+graph($("#g2"), {sel:"dbh", vis:new Set(), sim:1});
+</script>
+</body>
+</html>
